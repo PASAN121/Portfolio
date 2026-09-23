@@ -1,0 +1,3164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>PASAN — Security Portfolio</title>
+
+    <meta
+      name="description"
+      content="Pasan — CS undergraduate building Python security tooling. SOC Analyst → Security Engineer → Penetration Tester.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet">
+
+    <style>
+
+    :root {
+      --bg: #161616;
+      --bg2: #1d1d1d;
+      --ink: #f2efe9;
+      --dim: #8b8880;
+      --faint: #3a3a38;
+      --red: #ed4439;
+      --red-dark: #c9352b;
+
+      --mono: 'IBM Plex Mono', ui-monospace, monospace;
+      --disp: 'Archivo', system-ui, sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--disp);
+      overflow-x: hidden;
+    }
+
+    ::selection {
+      background: var(--red);
+      color: #111;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    a:focus-visible,
+    button:focus-visible {
+      outline: 2px solid var(--red);
+      outline-offset: 4px;
+    }
+
+    img {
+      max-width: 100%;
+    }
+
+    /* =========================
+       CURSOR
+    ========================= */
+
+    .cur-dot,
+    .cur-ring {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 9999;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .cur-dot {
+      width: 7px;
+      height: 7px;
+      background: var(--red);
+    }
+
+    .cur-ring {
+      width: 40px;
+      height: 40px;
+      border: 1.5px solid rgba(242, 239, 233, .35);
+      transition:
+        width .3s,
+        height .3s,
+        border-color .3s,
+        background .3s;
+    }
+
+    .cur-ring.hov {
+      width: 64px;
+      height: 64px;
+      border-color: var(--red);
+      background: rgba(237, 68, 57, .12);
+    }
+
+    @media (hover: none) {
+      .cur-dot,
+      .cur-ring {
+        display: none;
+      }
+    }
+
+    /* =========================
+       LOADER
+    ========================= */
+
+    #loader {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: #0f0f0f;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      gap: 22px;
+
+      transition:
+        opacity .5s,
+        visibility .5s;
+    }
+
+    #loader.done {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    #loader .word {
+      font-family: var(--mono);
+      font-size: .78rem;
+      letter-spacing: .3em;
+      color: var(--dim);
+      text-transform: uppercase;
+    }
+
+    #loader .bar {
+      width: min(320px, 60vw);
+      height: 3px;
+      background: var(--faint);
+      overflow: hidden;
+    }
+
+    #loader .bar i {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: var(--red);
+      transition: width .12s linear;
+    }
+
+    /* =========================
+       NAV
+    ========================= */
+
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+
+      z-index: 100;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      padding: 20px 5vw;
+
+      background:
+        linear-gradient(
+          180deg,
+          rgba(22, 22, 22, .9),
+          rgba(22, 22, 22, 0)
+        );
+    }
+
+    nav .logo {
+      font-family: var(--mono);
+      font-size: .85rem;
+      letter-spacing: .1em;
+    }
+
+    nav .logo b {
+      color: var(--red);
+      font-weight: 500;
+    }
+
+    nav .links {
+      display: flex;
+      gap: 26px;
+
+      font-family: var(--mono);
+      font-size: .72rem;
+
+      text-transform: uppercase;
+      letter-spacing: .12em;
+
+      color: var(--dim);
+    }
+
+    nav .links a {
+      position: relative;
+      transition: color .25s;
+    }
+
+    nav .links a::after {
+      content: "";
+
+      position: absolute;
+      left: 0;
+      bottom: -4px;
+
+      width: 0;
+      height: 1px;
+
+      background: var(--red);
+
+      transition: width .3s;
+    }
+
+    nav .links a:hover {
+      color: var(--ink);
+    }
+
+    nav .links a:hover::after {
+      width: 100%;
+    }
+
+    /* =========================
+       HERO
+    ========================= */
+
+    .hero {
+      min-height: 100svh;
+
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+
+      align-items: center;
+
+      gap: 5vw;
+
+      padding: 16vh 5vw 10vh;
+
+      position: relative;
+    }
+
+    .hero h1 {
+      font-size: clamp(4rem, 13vw, 12rem);
+
+      font-weight: 900;
+
+      line-height: .9;
+
+      letter-spacing: -.04em;
+
+      text-transform: uppercase;
+    }
+
+    .hero .tagline {
+      font-size: clamp(1.15rem, 2.4vw, 1.8rem);
+
+      font-weight: 800;
+
+      text-transform: uppercase;
+
+      letter-spacing: -.01em;
+
+      margin-top: 18px;
+
+      opacity: 0;
+
+      transform: translateY(14px);
+
+      transition:
+        opacity .8s .5s,
+        transform .8s .5s;
+    }
+
+    .hero .tagline em {
+      font-style: normal;
+      color: var(--red);
+    }
+
+    body.loaded .hero .tagline {
+      opacity: 1;
+      transform: none;
+    }
+
+    .hero .who {
+      font-size: .95rem;
+
+      color: var(--dim);
+
+      line-height: 1.65;
+
+      max-width: 520px;
+
+      margin-top: 20px;
+
+      opacity: 0;
+
+      transform: translateY(14px);
+
+      transition:
+        opacity .8s .65s,
+        transform .8s .65s;
+    }
+
+    body.loaded .hero .who {
+      opacity: 1;
+      transform: none;
+    }
+
+    .avatar-wrap {
+      position: relative;
+
+      justify-self: end;
+
+      opacity: 0;
+
+      transform:
+        translateY(24px)
+        rotate(2deg);
+
+      transition:
+        opacity .9s .4s,
+        transform .9s .4s cubic-bezier(.19, 1, .22, 1);
+    }
+
+    body.loaded .avatar-wrap {
+      opacity: 1;
+      transform: none;
+    }
+
+    .avatar {
+      display: block;
+
+      width: min(380px, 36vw);
+
+      aspect-ratio: 1 / 1;
+
+      object-fit: cover;
+
+      border-radius: 22px;
+
+      border: 1px solid var(--faint);
+
+      filter: grayscale(1) contrast(1.05);
+
+      box-shadow: 14px 14px 0 var(--red);
+
+      transition:
+        filter .4s,
+        transform .4s,
+        box-shadow .4s;
+    }
+
+    .avatar-wrap:hover .avatar {
+      filter: none;
+
+      transform: translate(5px, 5px);
+
+      box-shadow: 7px 7px 0 var(--red);
+    }
+
+    .badge {
+      position: absolute;
+
+      left: -44px;
+      bottom: -44px;
+
+      width: 128px;
+      height: 128px;
+
+      animation: spin 14s linear infinite;
+
+      filter:
+        drop-shadow(
+          0 10px 24px rgba(0, 0, 0, .45)
+        );
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .badge textPath {
+      font-family: var(--mono);
+
+      font-size: 10.5px;
+
+      letter-spacing: .22em;
+
+      fill: #111;
+
+      text-transform: uppercase;
+    }
+
+    .hero h1 .ch {
+      display: inline-block;
+
+      transform:
+        translateY(120%)
+        rotate(6deg);
+
+      opacity: 0;
+
+      transition:
+        transform .8s cubic-bezier(.19, 1, .22, 1),
+        opacity .4s;
+    }
+
+    .hero h1 .word {
+      display: inline-block;
+
+      overflow: hidden;
+
+      vertical-align: top;
+
+      padding-bottom: .08em;
+
+      margin-right: .22em;
+    }
+
+    .hero h1 .rd .ch {
+      color: var(--red);
+    }
+
+    body.loaded .hero h1 .ch {
+      transform: none;
+      opacity: 1;
+    }
+
+    .hero .sub {
+      display: flex;
+
+      justify-content: space-between;
+
+      align-items: flex-end;
+
+      flex-wrap: wrap;
+
+      gap: 14px;
+
+      margin-top: 5vh;
+
+      font-family: var(--mono);
+
+      font-size: .75rem;
+
+      letter-spacing: .1em;
+
+      text-transform: uppercase;
+
+      color: var(--dim);
+
+      opacity: 0;
+
+      transform: translateY(16px);
+
+      transition:
+        opacity .8s .7s,
+        transform .8s .7s;
+    }
+
+    body.loaded .hero .sub {
+      opacity: 1;
+      transform: none;
+    }
+
+    .hero .sub .blink {
+      color: var(--red);
+
+      animation: pulse 1.6s ease infinite;
+    }
+
+    @keyframes pulse {
+      50% {
+        opacity: .25;
+      }
+    }
+
+    .hero .down {
+      position: absolute;
+
+      bottom: 4vh;
+
+      left: 50%;
+
+      transform: translateX(-50%);
+
+      font-family: var(--mono);
+
+      font-size: .65rem;
+
+      letter-spacing: .25em;
+
+      color: var(--dim);
+
+      text-transform: uppercase;
+
+      animation: bob 2s ease infinite;
+    }
+
+    @keyframes bob {
+      50% {
+        transform: translate(-50%, 8px);
+      }
+    }
+
+    /* =========================
+       STORY
+    ========================= */
+
+    .story {
+      height: 340vh;
+      position: relative;
+    }
+
+    .story .pin {
+      position: sticky;
+
+      top: 0;
+
+      height: 100vh;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: center;
+
+      overflow: hidden;
+    }
+
+    .story .st {
+      position: absolute;
+
+      width: 90vw;
+
+      max-width: 1100px;
+
+      text-align: center;
+
+      font-size:
+        clamp(1.9rem, 5.6vw, 4.6rem);
+
+      font-weight: 800;
+
+      line-height: 1.05;
+
+      letter-spacing: -.03em;
+
+      text-transform: uppercase;
+
+      opacity: 0;
+
+      transform:
+        translateY(60px)
+        scale(.96);
+
+      transition:
+        opacity .45s,
+        transform .45s;
+    }
+
+    .story .st.on {
+      opacity: 1;
+      transform: none;
+    }
+
+    .story .st.off {
+      opacity: 0;
+
+      transform:
+        translateY(-60px)
+        scale(.96);
+    }
+
+    .story .st em {
+      font-style: normal;
+      color: var(--red);
+    }
+
+    .story .progress {
+      position: absolute;
+
+      bottom: 6vh;
+
+      left: 50%;
+
+      transform: translateX(-50%);
+
+      display: flex;
+
+      gap: 8px;
+    }
+
+    .story .progress i {
+      width: 26px;
+      height: 3px;
+
+      background: var(--faint);
+
+      transition: background .3s;
+    }
+
+    .story .progress i.on {
+      background: var(--red);
+    }
+
+    /* =========================
+       MARQUEE
+    ========================= */
+
+    .marquee {
+      background: var(--red);
+
+      color: #111;
+
+      overflow: hidden;
+
+      white-space: nowrap;
+
+      padding: 16px 0;
+
+      transform:
+        rotate(-1.2deg)
+        scale(1.02);
+
+      border: none;
+    }
+
+    .marquee.rev {
+      background: var(--ink);
+
+      transform:
+        rotate(1.2deg)
+        scale(1.02);
+
+      margin-top: -8px;
+    }
+
+    .marquee .track {
+      display: inline-block;
+
+      animation:
+        mq 20s linear infinite;
+    }
+
+    .marquee.rev .track {
+      animation-direction: reverse;
+    }
+
+    .marquee span {
+      font-family: var(--disp);
+
+      font-weight: 800;
+
+      font-size: 1.05rem;
+
+      text-transform: uppercase;
+
+      letter-spacing: .06em;
+
+      margin-right: 48px;
+    }
+
+    @keyframes mq {
+      to {
+        transform: translateX(-50%);
+      }
+    }
+
+    /* =========================
+       PROJECTS
+    ========================= */
+
+    .projects {
+      padding: 20vh 5vw 14vh;
+
+      max-width: 1300px;
+
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      font-family: var(--mono);
+
+      font-size: .72rem;
+
+      text-transform: uppercase;
+
+      letter-spacing: .25em;
+
+      color: var(--dim);
+
+      margin-bottom: 14px;
+    }
+
+    .eyebrow::before {
+      content: "// ";
+
+      color: var(--red);
+    }
+
+    .sec-title {
+      font-size:
+        clamp(2.2rem, 6vw, 4.6rem);
+
+      font-weight: 900;
+
+      letter-spacing: -.03em;
+
+      text-transform: uppercase;
+
+      line-height: .95;
+
+      margin-bottom: 8vh;
+    }
+
+    .sec-title em {
+      font-style: normal;
+      color: var(--red);
+    }
+
+    .pgrid {
+      display: grid;
+
+      grid-template-columns:
+        repeat(
+          auto-fill,
+          minmax(330px, 1fr)
+        );
+
+      gap: 22px;
+    }
+
+    .pcard {
+      position: relative;
+
+      background: var(--bg2);
+
+      border: 1px solid var(--faint);
+
+      border-radius: 14px;
+
+      padding: 30px 26px;
+
+      overflow: hidden;
+
+      transform-style: preserve-3d;
+
+      transition:
+        border-color .3s,
+        box-shadow .3s;
+
+      opacity: 0;
+
+      translate: 0 40px;
+    }
+
+    .pcard.in {
+      opacity: 1;
+
+      translate: 0 0;
+
+      transition:
+        opacity .7s,
+        translate .7s cubic-bezier(.19, 1, .22, 1),
+        border-color .3s,
+        box-shadow .3s;
+    }
+
+    .pcard:hover {
+      border-color: var(--red);
+
+      box-shadow:
+        0 18px 50px rgba(0, 0, 0, .5),
+        0 0 0 1px rgba(237, 68, 57, .35),
+        0 0 44px rgba(237, 68, 57, .12);
+    }
+
+    .pcard .num {
+      font-size: 3.4rem;
+
+      font-weight: 900;
+
+      color: transparent;
+
+      -webkit-text-stroke:
+        1px var(--faint);
+
+      line-height: 1;
+
+      transition:
+        -webkit-text-stroke-color .3s,
+        color .3s;
+    }
+
+    .pcard:hover .num {
+      -webkit-text-stroke-color:
+        var(--red);
+    }
+
+    .pcard h3 {
+      font-size: 1.35rem;
+
+      font-weight: 800;
+
+      text-transform: uppercase;
+
+      letter-spacing: -.01em;
+
+      margin: 16px 0 10px;
+    }
+
+    .pcard p {
+      font-size: .87rem;
+
+      color: var(--dim);
+
+      line-height: 1.55;
+
+      margin-bottom: 18px;
+    }
+
+    .pcard .tags {
+      display: flex;
+
+      flex-wrap: wrap;
+
+      gap: 6px;
+    }
+
+    .pcard .tags span {
+      font-family: var(--mono);
+
+      font-size: .64rem;
+
+      color: var(--dim);
+
+      border: 1px solid var(--faint);
+
+      border-radius: 999px;
+
+      padding: 3px 10px;
+
+      transition:
+        color .25s,
+        border-color .25s;
+    }
+
+    .pcard:hover .tags span {
+      color: var(--ink);
+      border-color: var(--dim);
+    }
+
+    .pcard .go {
+      position: absolute;
+
+      top: 24px;
+
+      right: 24px;
+
+      font-size: 1.2rem;
+
+      color: var(--faint);
+
+      transition:
+        color .3s,
+        transform .3s;
+    }
+
+    .pcard:hover .go {
+      color: var(--red);
+
+      transform:
+        translate(3px, -3px);
+    }
+
+    .repo-link {
+      display: inline-block;
+
+      margin-top: 7vh;
+
+      font-family: var(--mono);
+
+      font-size: .85rem;
+
+      letter-spacing: .1em;
+
+      text-transform: uppercase;
+
+      color: var(--dim);
+    }
+
+    .repo-link b {
+      color: var(--red);
+
+      font-weight: 500;
+    }
+
+    .repo-link:hover b {
+      text-decoration: underline;
+    }
+
+    /* =========================
+       HORIZONTAL TRACKS
+    ========================= */
+
+    .hwrap {
+      height: 300vh;
+
+      position: relative;
+    }
+
+    .hpin {
+      position: sticky;
+
+      top: 0;
+
+      height: 100vh;
+
+      overflow: hidden;
+
+      display: flex;
+
+      flex-direction: column;
+
+      justify-content: center;
+    }
+
+    .hpin .eyebrow,
+    .hpin .sec-title {
+      padding: 0 5vw;
+    }
+
+    .hpin .sec-title {
+      margin-bottom: 5vh;
+    }
+
+    .hstrip {
+      display: flex;
+
+      gap: 24px;
+
+      padding: 0 5vw;
+
+      will-change: transform;
+    }
+
+    .hcard {
+      flex: 0 0 min(420px, 78vw);
+
+      background: var(--bg2);
+
+      border: 1px solid var(--faint);
+
+      border-radius: 16px;
+
+      padding: 34px 30px;
+
+      min-height: 46vh;
+
+      display: flex;
+
+      flex-direction: column;
+
+      justify-content: space-between;
+
+      transition:
+        border-color .3s,
+        background .3s;
+    }
+
+    .hcard:hover {
+      border-color: var(--red);
+    }
+
+    .hcard .top .st {
+      font-family: var(--mono);
+
+      font-size: .64rem;
+
+      letter-spacing: .2em;
+
+      text-transform: uppercase;
+
+      color: var(--red);
+
+      margin-bottom: 14px;
+    }
+
+    .hcard h4 {
+      font-size:
+        clamp(1.6rem, 3vw, 2.3rem);
+
+      font-weight: 900;
+
+      text-transform: uppercase;
+
+      letter-spacing: -.02em;
+
+      line-height: 1;
+    }
+
+    .hcard p {
+      font-size: .9rem;
+
+      color: var(--dim);
+
+      line-height: 1.6;
+    }
+
+    .hcard .idx {
+      font-size: 4rem;
+
+      font-weight: 900;
+
+      color: transparent;
+
+      -webkit-text-stroke:
+        1px var(--faint);
+
+      align-self: flex-end;
+
+      line-height: 1;
+    }
+
+    /* =========================
+       RED BUTTON
+    ========================= */
+
+    .gag {
+      padding: 22vh 5vw;
+
+      text-align: center;
+    }
+
+    .gag .warn {
+      font-family: var(--mono);
+
+      font-size: .72rem;
+
+      letter-spacing: .25em;
+
+      text-transform: uppercase;
+
+      color: var(--dim);
+
+      margin-bottom: 5vh;
+    }
+
+    .bigred {
+      display: inline-block;
+
+      background: var(--red);
+
+      color: #111;
+
+      border: none;
+
+      cursor: pointer;
+
+      font-family: var(--disp);
+
+      font-weight: 900;
+
+      text-transform: uppercase;
+
+      letter-spacing: -.01em;
+
+      font-size:
+        clamp(1.3rem, 3.4vw, 2.4rem);
+
+      padding:
+        clamp(24px, 4vw, 44px)
+        clamp(36px, 6vw, 80px);
+
+      border-radius: 999px;
+
+      box-shadow:
+        0 12px 0 var(--red-dark),
+        0 26px 60px rgba(237, 68, 57, .35);
+
+      transition:
+        transform .12s,
+        box-shadow .12s;
+
+      will-change: transform;
+    }
+
+    .bigred:hover {
+      transform: translateY(4px);
+
+      box-shadow:
+        0 8px 0 var(--red-dark),
+        0 20px 50px rgba(237, 68, 57, .4);
+    }
+
+    .bigred:active {
+      transform: translateY(12px);
+
+      box-shadow:
+        0 0 0 var(--red-dark),
+        0 8px 24px rgba(237, 68, 57, .45);
+    }
+
+    .gag .fine {
+      font-family: var(--mono);
+
+      font-size: .68rem;
+
+      color: var(--faint);
+
+      margin-top: 26px;
+
+      letter-spacing: .1em;
+    }
+
+    /* =========================
+       TERMINAL
+    ========================= */
+
+    #term {
+      position: fixed;
+
+      inset: 0;
+
+      z-index: 500;
+
+      background:
+        rgba(10, 10, 10, .96);
+
+      display: none;
+
+      align-items: center;
+
+      justify-content: center;
+
+      padding: 5vw;
+    }
+
+    #term.open {
+      display: flex;
+    }
+
+    #term .win {
+      width: min(760px, 100%);
+
+      background: #101010;
+
+      border: 1px solid var(--faint);
+
+      border-radius: 10px;
+
+      overflow: hidden;
+
+      box-shadow:
+        0 30px 90px rgba(0, 0, 0, .7);
+    }
+
+    #term .bar {
+      display: flex;
+
+      align-items: center;
+
+      gap: 8px;
+
+      padding: 12px 16px;
+
+      background: #1a1a1a;
+
+      border-bottom: 1px solid var(--faint);
+    }
+
+    #term .bar i {
+      width: 11px;
+      height: 11px;
+
+      border-radius: 50%;
+
+      background: var(--faint);
+    }
+
+    #term .bar i:first-child {
+      background: var(--red);
+    }
+
+    #term .bar span {
+      font-family: var(--mono);
+
+      font-size: .7rem;
+
+      color: var(--dim);
+
+      margin-left: 8px;
+    }
+
+    #term .bar button {
+      margin-left: auto;
+
+      background: none;
+
+      border: 1px solid var(--faint);
+
+      color: var(--dim);
+
+      font-family: var(--mono);
+
+      font-size: .65rem;
+
+      padding: 4px 12px;
+
+      border-radius: 4px;
+
+      cursor: pointer;
+
+      transition:
+        color .2s,
+        border-color .2s;
+    }
+
+    #term .bar button:hover {
+      color: var(--ink);
+
+      border-color: var(--red);
+    }
+
+    #term pre {
+      font-family: var(--mono);
+
+      font-size: .78rem;
+
+      line-height: 1.7;
+
+      color: #c9c6bf;
+
+      padding: 22px;
+
+      min-height: 300px;
+
+      white-space: pre-wrap;
+
+      word-break: break-word;
+    }
+
+    #term pre .ok {
+      color: #5dd67c;
+    }
+
+    #term pre .rd {
+      color: var(--red);
+    }
+
+    #term pre a {
+      color: var(--red);
+
+      text-decoration: underline;
+    }
+
+    /* =========================
+       FOOTER
+    ========================= */
+
+    footer {
+      padding: 20vh 5vw 6vh;
+
+      text-align: left;
+    }
+
+    footer .huge {
+      font-size:
+        clamp(3rem, 11vw, 10.5rem);
+
+      font-weight: 900;
+
+      line-height: .9;
+
+      letter-spacing: -.04em;
+
+      text-transform: uppercase;
+
+      margin-bottom: 7vh;
+    }
+
+    footer .huge em {
+      font-style: normal;
+
+      color: transparent;
+
+      -webkit-text-stroke:
+        2px var(--red);
+    }
+
+    .pill {
+      display: inline-flex;
+
+      align-items: center;
+
+      gap: 12px;
+
+      font-family: var(--mono);
+
+      font-size: .85rem;
+
+      letter-spacing: .1em;
+
+      text-transform: uppercase;
+
+      border: 1px solid var(--ink);
+
+      border-radius: 999px;
+
+      padding: 20px 40px;
+
+      transition:
+        background .3s,
+        color .3s,
+        border-color .3s;
+
+      will-change: transform;
+    }
+
+    .pill:hover {
+      background: var(--red);
+
+      border-color: var(--red);
+
+      color: #111;
+    }
+
+    footer .cols {
+      display: flex;
+
+      flex-wrap: wrap;
+
+      justify-content: space-between;
+
+      gap: 24px;
+
+      margin-top: 12vh;
+
+      padding-top: 4vh;
+
+      border-top: 1px solid var(--faint);
+
+      font-family: var(--mono);
+
+      font-size: .7rem;
+
+      letter-spacing: .1em;
+
+      text-transform: uppercase;
+
+      color: var(--dim);
+    }
+
+    footer .cols a:hover {
+      color: var(--red);
+    }
+
+    /* =========================
+       MOBILE
+    ========================= */
+
+    @media (max-width: 760px) {
+
+      nav .links {
+        display: none;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+
+        gap: 9vh;
+
+        padding-top: 14vh;
+
+        align-content: center;
+      }
+
+      .avatar-wrap {
+        justify-self: center;
+      }
+
+      .avatar {
+        width: min(300px, 72vw);
+      }
+
+      .badge {
+        left: auto;
+
+        right: -24px;
+
+        bottom: -30px;
+
+        width: 100px;
+
+        height: 100px;
+      }
+
+      .hero .down {
+        display: none;
+      }
+
+      .hwrap {
+        height: auto;
+      }
+
+      .hpin {
+        position: static;
+
+        height: auto;
+
+        padding: 14vh 0;
+      }
+
+      .hstrip {
+        overflow-x: auto;
+
+        scroll-snap-type: x mandatory;
+
+        padding-bottom: 20px;
+      }
+
+      .hcard {
+        scroll-snap-align: start;
+
+        min-height: 340px;
+      }
+
+    }
+
+    /* =========================
+       REDUCED MOTION
+    ========================= */
+
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+
+      #loader {
+        display: none;
+      }
+
+      .hero h1 .ch,
+      .hero .sub {
+        opacity: 1;
+
+        transform: none;
+      }
+
+      .pcard {
+        opacity: 1;
+
+        translate: 0 0;
+      }
+
+      .story {
+        height: auto;
+      }
+
+      .story .pin {
+        position: static;
+
+        height: auto;
+
+        flex-direction: column;
+
+        gap: 40px;
+
+        padding: 14vh 5vw;
+      }
+
+      .story .st {
+        position: static;
+
+        opacity: 1;
+
+        transform: none;
+      }
+
+      .story .progress {
+        display: none;
+      }
+
+      .hwrap {
+        height: auto;
+      }
+
+      .hpin {
+        position: static;
+
+        height: auto;
+      }
+
+      .hstrip {
+        flex-wrap: wrap;
+      }
+
+    }
+
+  </style>
+  </head>
+
+  <body>
+
+    <div class="cur-dot" aria-hidden="true"></div>
+    <div class="cur-ring" aria-hidden="true"></div>
+
+    <!-- LOADER -->
+
+    <div id="loader" aria-hidden="true">
+
+      <div class="word">
+        Initializing__
+      </div>
+
+      <div class="bar">
+        <i></i>
+      </div>
+
+    </div>
+
+    <!-- NAV -->
+
+    <nav>
+
+      <a class="logo" href="#top">
+        <b>&gt;_</b> PASAN©2026
+      </a>
+
+      <div class="links">
+
+        <a href="#work">Work</a>
+
+        <a href="#tracks">Tracks</a>
+
+        <a
+          href="https://github.com/PASAN121"
+          target="_blank"
+          rel="noopener">
+          GitHub
+        </a>
+
+        <a href="#contact">
+          Contact
+        </a>
+
+      </div>
+
+    </nav>
+
+    <!-- HERO -->
+
+    <header class="hero" id="top">
+
+      <div class="intro">
+
+        <div class="eyebrow">
+          Who am I
+        </div>
+
+        <h1 id="split">
+          Pasan
+        </h1>
+
+        <p class="tagline">
+          I break things to
+          <em>defend them.</em>
+        </p>
+
+        <p class="who">
+          Computer Science undergraduate at IIT, Sri Lanka.
+          I build security tools from scratch — hashing,
+          sockets, packet capture, log analysis — and ship
+          everything to GitHub. Currently building practical
+          cybersecurity skills through TryHackMe, with a focus
+          on Linux, networking, SOC operations, and offensive security.
+        </p>
+
+        <div class="sub">
+
+          <div>
+            <span class="blink">●</span>
+            SOC Analyst → Security Engineer → Penetration Tester
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="avatar-wrap">
+
+        <img
+          class="avatar"
+          src="https://github.com/PASAN121.png"
+          alt="Pasan — GitHub profile photo"
+          onerror="this.parentElement.style.display='none'">
+
+        <svg
+          class="badge"
+          viewBox="0 0 128 128"
+          aria-hidden="true">
+
+          <circle
+            cx="64"
+            cy="64"
+            r="64"
+            fill="#ed4439" />
+
+          <path
+            id="circ"
+            d="
+            M 64,64
+            m -44,0
+            a 44,44 0 1,1 88,0
+            a 44,44 0 1,1 -88,0
+          "
+            fill="none" />
+
+          <text>
+
+            <textpath href="#circ">
+              open to internships • soc → pentest •
+            </textpath>
+
+          </text>
+
+        </svg>
+
+      </div>
+
+      <div class="down">
+        Scroll ↓
+      </div>
+
+    </header>
+
+    <!-- STORY -->
+
+    <section
+      class="story"
+      aria-label="statement">
+
+      <div class="pin">
+
+        <div
+          class="st"
+          data-i="0">
+          You can't break
+          <br>
+          what you
+          <em>don't understand.</em>
+        </div>
+
+        <div
+          class="st"
+          data-i="1">
+          So I'm learning to
+          <br>
+          <em>defend first</em>
+          — logs, packets,
+          <br>
+          hashes, sockets.
+        </div>
+
+        <div
+          class="st"
+          data-i="2">
+          Then I'm coming for the
+          <br>
+          <em>red team.</em>
+        </div>
+
+        <div class="progress">
+          <i></i>
+          <i></i>
+          <i></i>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- MARQUEE -->
+
+    <div
+      class="marquee"
+      aria-hidden="true">
+
+      <div class="track">
+
+        <span>Python security ●</span>
+        <span>Networking ●</span>
+        <span>Linux ●</span>
+        <span>Java OOP ●</span>
+        <span>SOC ●</span>
+        <span>TryHackMe ●</span>
+        <span>Offensive security ●</span>
+
+        <span>Python security ●</span>
+        <span>Networking ●</span>
+        <span>Linux ●</span>
+        <span>Java OOP ●</span>
+        <span>SOC ●</span>
+        <span>TryHackMe ●</span>
+        <span>Offensive security ●</span>
+
+      </div>
+
+    </div>
+
+    <div
+      class="marquee rev"
+      aria-hidden="true">
+
+      <div class="track">
+
+        <span>Built from scratch ●</span>
+        <span>No frameworks ●</span>
+        <span>github.com/PASAN121 ●</span>
+        <span>Portfolio-first ●</span>
+
+        <span>Built from scratch ●</span>
+        <span>No frameworks ●</span>
+        <span>github.com/PASAN121 ●</span>
+        <span>Portfolio-first ●</span>
+
+      </div>
+
+    </div>
+
+    <!-- PROJECTS -->
+
+    <section
+      class="projects"
+      id="work">
+
+      <div class="eyebrow">
+        Featured work — python-cybersecurity-learning-toolkit
+      </div>
+
+      <h2 class="sec-title">
+        Seven tools.
+        <br>
+        Written from
+        <em>scratch.</em>
+      </h2>
+
+      <div class="pgrid">
+
+        <!-- 01 — FILE INTEGRITY MONITOR -->
+
+        <a
+          class="pcard"
+          href="file-integrity-monitor.html">
+
+          <span class="go">↗</span>
+
+          <div class="num">
+            01
+          </div>
+
+          <h3>
+            File Integrity Monitor
+          </h3>
+
+          <p>
+            Detects unauthorized file changes against a
+            SHA-256 JSON baseline. CLI with a --reset flag
+            to re-baseline.
+          </p>
+
+          <div class="tags">
+
+            <span>hashlib</span>
+            <span>sha-256</span>
+            <span>argparse</span>
+            <span>json</span>
+
+          </div>
+
+        </a>
+
+        <!-- 02 — SSH BRUTE FORCE DETECTOR -->
+
+        <a
+          class="pcard"
+          href="ssh-brute-force-detector.html">
+
+          <span class="go">↗</span>
+
+          <div class="num">
+            02
+          </div>
+
+          <h3>
+            SSH Brute Force Detector
+          </h3>
+
+          <p>
+            Flags source IPs crossing a failed-login
+            threshold — the core logic behind real IDS
+            alerting.
+          </p>
+
+          <div class="tags">
+
+            <span>log analysis</span>
+            <span>detection</span>
+            <span>regex</span>
+
+          </div>
+
+        </a>
+
+        <!-- 03 — PORT SCANNER -->
+
+        <a
+          class="pcard"
+          href="port-scanner.html">
+
+          <span class="go">↗</span>
+
+          <div class="num">
+            03
+          </div>
+
+          <h3>
+            Port Scanner
+          </h3>
+
+          <p>
+            Multi-threaded TCP scanner on raw sockets —
+            the fundamentals under nmap, built to
+            understand them.
+          </p>
+
+          <div class="tags">
+
+            <span>sockets</span>
+            <span>threading</span>
+            <span>TCP</span>
+
+          </div>
+
+        </a>
+
+        <!-- 04 — NETSNIFFER -->
+
+        <a
+          class="pcard"
+          href="netsniffer.html">
+
+          <span class="go">↗</span>
+
+          <div class="num">
+            04
+          </div>
+
+          <h3>
+            NetSniffer
+          </h3>
+
+          <p>
+            Live packet capture and inspection with Scapy —
+            reading traffic at the protocol level.
+          </p>
+
+          <div class="tags">
+
+            <span>scapy</span>
+            <span>packets</span>
+            <span>networking</span>
+
+          </div>
+
+        </a>
+
+        <!-- 05 — SSH LOG PARSER -->
+
+        <a
+          class="pcard"
+          href="ssh-log-parser.html">
+
+          <span class="go">↗</span>
+
+          <div class="num">
+            05
+          </div>
+
+          <h3>
+            SSH Log Parser
+          </h3>
+
+          <p>
+            Regex parsing of authentication logs,
+            per-source failure aggregation, and structured
+            JSON incident reports.
+          </p>
+
+          <div class="tags">
+
+            <span>regex</span>
+            <span>defaultdict</span>
+            <span>json</span>
+
+          </div>
+
+        </a>
+
+        <!-- 06 — SYSTEM AUTOMATION TOOL -->
+
+        <a
+          class="pcard"
+          href="system-automation-tool.html">
+
+          <span class="go">↗</span>
+
+          <div class="num">
+            06
+          </div>
+
+          <h3>
+            System Automation Tool
+          </h3>
+
+          <p>
+            Generates a full folder-and-file structure in
+            one command — creating a clean and consistent
+            project layout automatically.
+          </p>
+
+          <div class="tags">
+
+            <span>os</span>
+            <span>pathlib</span>
+            <span>automation</span>
+
+          </div>
+
+        </a>
+
+        <!-- 07 — CYBER PROCESS MONITOR -->
+
+        <a
+          class="pcard"
+          href="cyber-process-monitor.html">
+
+          <span class="go">↗</span>
+
+          <div class="num">
+            07
+          </div>
+
+          <h3>
+            Cyber Process Monitor
+          </h3>
+
+          <p>
+            Monitors running processes and system resource
+            usage, detects threshold violations, and records
+            activity for later analysis.
+          </p>
+
+          <div class="tags">
+
+            <span>python</span>
+            <span>psutil</span>
+            <span>process monitoring</span>
+            <span>logging</span>
+
+          </div>
+
+        </a>
+
+      </div>
+
+      <a
+        class="repo-link"
+        href="https://github.com/PASAN121"
+        target="_blank"
+        rel="noopener">
+        Full source →
+        <b>github.com/PASAN121</b>
+      </a>
+
+    </section>
+
+    <!-- SKILL TRACKS -->
+
+    <section
+      class="hwrap"
+      id="tracks">
+
+      <div class="hpin">
+
+        <div class="eyebrow">
+          Practical training
+        </div>
+
+        <h2 class="sec-title">
+          Skill
+          <em>tracks.</em>
+        </h2>
+
+        <div
+          class="hstrip"
+          id="hstrip">
+
+          <!-- 01 -->
+
+          <div class="hcard">
+
+            <div class="top">
+
+              <div class="st">
+                Primary track
+              </div>
+
+              <h4>
+                Python Security
+              </h4>
+
+            </div>
+
+            <p>
+              Seven security-focused tools covering hashing,
+              sockets, threading, packet capture, encryption,
+              log analysis, process monitoring and automation.
+            </p>
+
+            <div class="idx">
+              01
+            </div>
+
+          </div>
+
+          <!-- 02 -->
+
+          <div class="hcard">
+
+            <div class="top">
+
+              <div class="st">
+                Fundamentals
+              </div>
+
+              <h4>
+                Networking
+              </h4>
+
+            </div>
+
+            <p>
+              TCP/IP, ports and protocols, DNS, HTTP/HTTPS,
+              SSH, TLS, packet-level analysis and hands-on
+              networking tools.
+            </p>
+
+            <div class="idx">
+              02
+            </div>
+
+          </div>
+
+          <!-- 03 -->
+
+          <div class="hcard">
+
+            <div class="top">
+
+              <div class="st">
+                Fundamentals
+              </div>
+
+              <h4>
+                Linux
+              </h4>
+
+            </div>
+
+            <p>
+              CLI workflow, permissions, processes, files,
+              services and security-relevant log locations —
+              building the environment security work depends on.
+            </p>
+
+            <div class="idx">
+              03
+            </div>
+
+          </div>
+
+          <!-- 04 -->
+
+          <div class="hcard">
+
+            <div class="top">
+
+              <div class="st">
+                Academic
+              </div>
+
+              <h4>
+                Java OOP
+              </h4>
+
+            </div>
+
+            <p>
+              Classes, objects, constructors, encapsulation,
+              inheritance, polymorphism and collections as
+              part of Year 2 Computer Science coursework.
+            </p>
+
+            <div class="idx">
+              04
+            </div>
+
+          </div>
+
+          <!-- 05 -->
+
+          <div class="hcard">
+
+            <div class="top">
+
+              <div class="st">
+                Hands-on labs
+              </div>
+
+              <h4>
+                TryHackMe
+              </h4>
+
+            </div>
+
+            <p>
+              Hands-on labs covering Linux, Windows, networking,
+              SOC operations, defensive security, offensive
+              security, alert triage and security fundamentals.
+            </p>
+
+            <div class="idx">
+              05
+            </div>
+
+          </div>
+
+          <!-- 06 -->
+
+          <div class="hcard">
+
+            <div class="top">
+
+              <div class="st">
+                Security operations
+              </div>
+
+              <h4>
+                SOC
+              </h4>
+
+            </div>
+
+            <p>
+              Alert triage, false positives, incident reporting,
+              log analysis, severity assessment and understanding
+              the workflow behind security monitoring.
+            </p>
+
+            <div class="idx">
+              06
+            </div>
+
+          </div>
+
+          <!-- 07 -->
+
+          <div class="hcard">
+
+            <div class="top">
+
+              <div class="st">
+                Offensive security
+              </div>
+
+              <h4>
+                Pentesting
+              </h4>
+
+            </div>
+
+            <p>
+              Building offensive security fundamentals through
+              enumeration, vulnerability discovery, Burp Suite,
+              Metasploit, reverse shells and controlled labs.
+            </p>
+
+            <div class="idx">
+              07
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- RED BUTTON -->
+
+    <section class="gag">
+
+      <div class="warn">
+        ⚠ definitely do not press this big red button ⚠
+      </div>
+
+      <button
+        class="bigred"
+        id="redbtn">
+        Do not run port scan
+      </button>
+
+      <div class="fine">
+        seriously. do not.
+      </div>
+
+    </section>
+
+    <!-- TERMINAL -->
+
+    <div
+      id="term"
+      role="dialog"
+      aria-label="terminal">
+
+      <div class="win">
+
+        <div class="bar">
+
+          <i></i>
+          <i></i>
+          <i></i>
+
+          <span>
+            pasan@sec: ~/recruit-scan
+          </span>
+
+          <button id="termclose">
+            close
+          </button>
+
+        </div>
+
+        <pre id="termout"></pre>
+
+      </div>
+
+    </div>
+
+    <!-- FOOTER -->
+
+    <footer id="contact">
+
+      <div class="huge">
+        Let's work
+        <br>
+        <em>together.</em>
+      </div>
+
+      <a
+        class="pill"
+        id="magnet"
+        href="https://github.com/PASAN121"
+        target="_blank"
+        rel="noopener">
+        Reach out on GitHub ↗
+      </a>
+
+      <a
+        class="pill"
+        id="magnet"
+        href="mailto:pasanchandi@gmail.com"
+        target="_blank"
+        rel="noopener">
+        Reach out:pasanchandi@gmail.com ↗
+      </a>
+
+      <div class="cols">
+
+        <div>
+          ©2026 Pasan — Sri Lanka
+        </div>
+
+        <div>
+
+          <a
+            href="https://github.com/PASAN121"
+            target="_blank"
+            rel="noopener">
+            GitHub ↗
+          </a>
+
+        </div>
+
+        <div>
+          Built from scratch. No frameworks.
+        </div>
+
+      </div>
+
+    </footer>
+
+    <!-- JAVASCRIPT -->
+
+    <script>
+
+    (function () {
+
+      "use strict";
+
+
+      var reduced =
+        matchMedia(
+          '(prefers-reduced-motion: reduce)'
+        ).matches;
+
+
+      var touch =
+        matchMedia(
+          '(hover: none)'
+        ).matches;
+
+
+      /* HERO CHARACTER ANIMATION */
+
+      var h1 =
+        document.getElementById('split');
+
+
+      (function () {
+
+        var out = '';
+
+
+        h1.childNodes.forEach(function (node) {
+
+          if (node.nodeType === 3) {
+
+            node.textContent
+              .trim()
+              .split(' ')
+              .forEach(function (w) {
+
+                if (!w) return;
+
+
+                out +=
+                  '<span class="word">' +
+
+                  w
+                    .split('')
+                    .map(function (c) {
+
+                      return (
+                        '<span class="ch">' +
+                        c +
+                        '</span>'
+                      );
+
+                    })
+                    .join('') +
+
+                  '</span>';
+
+              });
+
+          }
+
+          else if (node.nodeType === 1) {
+
+            var cls =
+              node.className;
+
+
+            node.textContent
+              .trim()
+              .split(' ')
+              .forEach(function (w) {
+
+                if (!w) return;
+
+
+                out +=
+                  '<span class="word ' +
+                  cls +
+                  '">' +
+
+                  w
+                    .split('')
+                    .map(function (c) {
+
+                      return (
+                        '<span class="ch">' +
+                        c +
+                        '</span>'
+                      );
+
+                    })
+                    .join('') +
+
+                  '</span>';
+
+              });
+
+          }
+
+        });
+
+
+        h1.innerHTML = out;
+
+
+        var chs =
+          h1.querySelectorAll('.ch');
+
+
+        chs.forEach(function (c, i) {
+
+          c.style.transitionDelay =
+            (i * 0.022) + 's';
+
+        });
+
+      })();
+
+
+      /* LOADER */
+
+      var loader =
+        document.getElementById('loader');
+
+
+      if (reduced) {
+
+        document.body.classList.add('loaded');
+
+        loader.remove();
+
+      }
+
+      else {
+
+        var bar =
+          loader.querySelector('.bar i');
+
+        var n = 0;
+
+
+        var iv =
+          setInterval(function () {
+
+            n +=
+              Math.floor(
+                Math.random() * 16
+              ) + 6;
+
+
+            if (n >= 100) {
+
+              n = 100;
+
+              clearInterval(iv);
+
+
+              setTimeout(function () {
+
+                loader.classList.add('done');
+
+                document.body.classList.add(
+                  'loaded'
+                );
+
+
+                setTimeout(function () {
+
+                  loader.remove();
+
+                }, 600);
+
+              }, 200);
+
+            }
+
+
+            bar.style.width =
+              n + '%';
+
+          }, 80);
+
+      }
+
+
+      /* CURSOR */
+
+      if (!touch && !reduced) {
+
+        var dot =
+          document.querySelector('.cur-dot');
+
+        var ring =
+          document.querySelector('.cur-ring');
+
+
+        var mx = innerWidth / 2;
+        var my = innerHeight / 2;
+
+        var rx = mx;
+        var ry = my;
+
+
+        addEventListener(
+          'mousemove',
+          function (e) {
+
+            mx = e.clientX;
+            my = e.clientY;
+
+
+            dot.style.left =
+              mx + 'px';
+
+            dot.style.top =
+              my + 'px';
+
+          }
+        );
+
+
+        (function loop() {
+
+          rx +=
+            (mx - rx) * .16;
+
+          ry +=
+            (my - ry) * .16;
+
+
+          ring.style.left =
+            rx + 'px';
+
+          ring.style.top =
+            ry + 'px';
+
+
+          requestAnimationFrame(loop);
+
+        })();
+
+
+        document
+          .querySelectorAll('a,button')
+          .forEach(function (el) {
+
+            el.addEventListener(
+              'mouseenter',
+              function () {
+
+                ring.classList.add('hov');
+
+              }
+            );
+
+
+            el.addEventListener(
+              'mouseleave',
+              function () {
+
+                ring.classList.remove('hov');
+
+              }
+            );
+
+          });
+
+      }
+
+
+      /* PINNED STORY */
+
+      var story =
+        document.querySelector('.story');
+
+      var sts =
+        story.querySelectorAll('.st');
+
+      var dots =
+        story.querySelectorAll('.progress i');
+
+
+      function storyUpdate() {
+
+        var r =
+          story.getBoundingClientRect();
+
+
+        var total =
+          r.height - innerHeight;
+
+
+        var p =
+          Math.max(
+            0,
+            Math.min(
+              1,
+              -r.top / total
+            )
+          );
+
+
+        var idx =
+          Math.min(
+            sts.length - 1,
+            Math.floor(
+              p * sts.length
+            )
+          );
+
+
+        sts.forEach(function (s, i) {
+
+          s.classList.toggle(
+            'on',
+            i === idx
+          );
+
+
+          s.classList.toggle(
+            'off',
+            i < idx
+          );
+
+        });
+
+
+        dots.forEach(function (d, i) {
+
+          d.classList.toggle(
+            'on',
+            i <= idx
+          );
+
+        });
+
+      }
+
+
+      if (!reduced) {
+
+        addEventListener(
+          'scroll',
+          storyUpdate,
+          {
+            passive: true
+          }
+        );
+
+        storyUpdate();
+
+      }
+
+
+      /* HORIZONTAL TRACKS */
+
+      var hwrap =
+        document.getElementById('tracks');
+
+      var hstrip =
+        document.getElementById('hstrip');
+
+
+      function hUpdate() {
+
+        if (innerWidth < 761) {
+
+          hstrip.style.transform = '';
+
+          return;
+
+        }
+
+
+        var r =
+          hwrap.getBoundingClientRect();
+
+
+        var total =
+          r.height - innerHeight;
+
+
+        var p =
+          Math.max(
+            0,
+            Math.min(
+              1,
+              -r.top / total
+            )
+          );
+
+
+        var maxX =
+          hstrip.scrollWidth -
+          innerWidth +
+          innerWidth * .05;
+
+
+        hstrip.style.transform =
+          'translate3d(' +
+          (-p * maxX) +
+          'px,0,0)';
+
+      }
+
+
+      if (!reduced) {
+
+        addEventListener(
+          'scroll',
+          hUpdate,
+          {
+            passive: true
+          }
+        );
+
+        addEventListener(
+          'resize',
+          hUpdate
+        );
+
+        hUpdate();
+
+      }
+
+
+      /* PROJECT CARD REVEAL */
+
+      var cards =
+        document.querySelectorAll('.pcard');
+
+
+      var obs =
+        new IntersectionObserver(
+          function (es) {
+
+            es.forEach(function (e) {
+
+              if (e.isIntersecting) {
+
+                e.target.style.transitionDelay =
+                  (
+                    Array.prototype.indexOf.call(
+                      cards,
+                      e.target
+                    ) % 3
+                  ) *
+                  0.08 +
+                  's';
+
+
+                e.target.classList.add('in');
+
+
+                obs.unobserve(
+                  e.target
+                );
+
+              }
+
+            });
+
+          },
+          {
+            threshold: .15
+          }
+        );
+
+
+      cards.forEach(function (c) {
+
+        obs.observe(c);
+
+      });
+
+
+      /* PROJECT TILT */
+
+      if (!touch && !reduced) {
+
+        cards.forEach(function (c) {
+
+          c.addEventListener(
+            'mousemove',
+            function (e) {
+
+              var r =
+                c.getBoundingClientRect();
+
+
+              var x =
+                (e.clientX - r.left) /
+                r.width -
+                .5;
+
+
+              var y =
+                (e.clientY - r.top) /
+                r.height -
+                .5;
+
+
+              c.style.transform =
+                'perspective(800px) ' +
+                'rotateY(' +
+                (x * 7) +
+                'deg) ' +
+                'rotateX(' +
+                (-y * 7) +
+                'deg) ' +
+                'translateY(-4px)';
+
+            }
+          );
+
+
+          c.addEventListener(
+            'mouseleave',
+            function () {
+
+              c.style.transition =
+                'transform .5s cubic-bezier(.19,1,.22,1)';
+
+              c.style.transform = '';
+
+
+              setTimeout(function () {
+
+                c.style.transition = '';
+
+              }, 500);
+
+            }
+          );
+
+        });
+
+      }
+
+
+      /* MAGNETIC BUTTON */
+
+      var mag =
+        document.getElementById('magnet');
+
+
+      if (mag && !touch && !reduced) {
+
+        mag.addEventListener(
+          'mousemove',
+          function (e) {
+
+            var r =
+              mag.getBoundingClientRect();
+
+
+            mag.style.transform =
+              'translate(' +
+
+              (
+                e.clientX -
+                (r.left + r.width / 2)
+              ) *
+              .28 +
+
+              'px,' +
+
+              (
+                e.clientY -
+                (r.top + r.height / 2)
+              ) *
+              .4 +
+
+              'px)';
+
+          }
+        );
+
+
+        mag.addEventListener(
+          'mouseleave',
+          function () {
+
+            mag.style.transition =
+              'transform .5s cubic-bezier(.19,1,.22,1)';
+
+            mag.style.transform = '';
+
+
+            setTimeout(function () {
+
+              mag.style.transition = '';
+
+            }, 500);
+
+          }
+        );
+
+      }
+
+
+      /* TERMINAL */
+
+      var term =
+        document.getElementById('term');
+
+      var out =
+        document.getElementById('termout');
+
+
+      var lines = [
+
+        {
+          t:
+            '$ ./recruit_scan.py --target visitor --mode aggressive',
+          d: 400
+        },
+
+        {
+          t:
+            '[*] initializing scan engine ...',
+          d: 350
+        },
+
+        {
+          t:
+            '[*] sweeping 1000 ports (threads: 50) ...',
+          d: 600
+        },
+
+        {
+          t:
+            '[*] port 22/tcp   filtered   (nice try)',
+          d: 300
+        },
+
+        {
+          t:
+            '[*] port 80/tcp   open       http',
+          d: 300
+        },
+
+        {
+          t:
+            '[*] port 443/tcp  open       https',
+          d: 300
+        },
+
+        {
+          t:
+            '<span class="rd">' +
+            '[!] ALERT: critical opportunity detected' +
+            '</span>',
+          d: 500
+        },
+
+        {
+          t:
+            '<span class="ok">' +
+            '[+] open port found: github.com/PASAN121' +
+            '</span>',
+          d: 400
+        },
+
+        {
+          t:
+            '<span class="ok">' +
+            '[+] payload: 7 working security tools, python, from scratch' +
+            '</span>',
+          d: 400
+        },
+
+        {
+          t:
+            '<span class="ok">' +
+            '[+] recommendation: hire this guy' +
+            '</span>',
+          d: 500
+        },
+
+        {
+          t: '',
+          d: 200
+        },
+
+        {
+          t:
+            '$ scan complete. 0 vulnerabilities. 1 candidate. ' +
+            '<a href="https://github.com/PASAN121" target="_blank" rel="noopener">' +
+            'view profile →' +
+            '</a>',
+          d: 0
+        }
+
+      ];
+
+
+      var running = false;
+
+
+      document
+        .getElementById('redbtn')
+        .addEventListener(
+          'click',
+          function () {
+
+            term.classList.add('open');
+
+
+            if (running) {
+              return;
+            }
+
+
+            running = true;
+
+            out.innerHTML = '';
+
+            var i = 0;
+
+
+            (function next() {
+
+              if (i >= lines.length) {
+
+                running = false;
+
+                return;
+
+              }
+
+
+              out.innerHTML +=
+                lines[i].t + '\n';
+
+
+              setTimeout(
+                next,
+                reduced
+                  ? 0
+                  : lines[i].d
+              );
+
+
+              i++;
+
+            })();
+
+          }
+        );
+
+
+      /* CLOSE TERMINAL */
+
+      document
+        .getElementById('termclose')
+        .addEventListener(
+          'click',
+          function () {
+
+            term.classList.remove(
+              'open'
+            );
+
+            running = false;
+
+          }
+        );
+
+
+      term.addEventListener(
+        'click',
+        function (e) {
+
+          if (e.target === term) {
+
+            term.classList.remove(
+              'open'
+            );
+
+            running = false;
+
+          }
+
+        }
+      );
+
+
+      /* ESCAPE */
+
+      addEventListener(
+        'keydown',
+        function (e) {
+
+          if (e.key === 'Escape') {
+
+            term.classList.remove(
+              'open'
+            );
+
+            running = false;
+
+          }
+
+        }
+      );
+
+    })();
+
+  </script>
+
+  </body>
+
+</html>

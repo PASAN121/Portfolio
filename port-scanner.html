@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Port Scanner — Pasan</title>
+    <meta name="description"
+      content="A multi-threaded TCP port scanner built on raw sockets — the fundamentals living under tools like nmap, written from scratch to actually understand them.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet">
+    <style>
+:root{--bg:#161616;--bg2:#1d1d1d;--ink:#f2efe9;--dim:#8b8880;--faint:#3a3a38;--red:#ed4439;--red-dark:#c9352b;--mono:'IBM Plex Mono',ui-monospace,monospace;--disp:'Archivo',system-ui,sans-serif;}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--disp);overflow-x:hidden}
+::selection{background:var(--red);color:#111}
+a{color:inherit;text-decoration:none}
+a:focus-visible,button:focus-visible{outline:2px solid var(--red);outline-offset:4px}
+.cur-dot,.cur-ring{position:fixed;top:0;left:0;pointer-events:none;z-index:9999;border-radius:50%;transform:translate(-50%,-50%)}
+.cur-dot{width:7px;height:7px;background:var(--red)}
+.cur-ring{width:40px;height:40px;border:1.5px solid rgba(242,239,233,.35);transition:width .3s,height .3s,border-color .3s,background .3s}
+.cur-ring.hov{width:64px;height:64px;border-color:var(--red);background:rgba(237,68,57,.12)}
+@media(hover:none){.cur-dot,.cur-ring{display:none}}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:20px 5vw;background:linear-gradient(180deg,rgba(22,22,22,.92),rgba(22,22,22,0))}
+nav .logo{font-family:var(--mono);font-size:.85rem;letter-spacing:.1em}
+nav .logo b{color:var(--red);font-weight:500}
+nav .back{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:var(--dim);transition:color .25s}
+nav .back:hover{color:var(--red)}
+.hero{min-height:88svh;display:flex;flex-direction:column;justify-content:center;padding:16vh 5vw 8vh;position:relative}
+.eyebrow{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.25em;color:var(--dim);margin-bottom:20px}
+.eyebrow::before{content:"// ";color:var(--red)}
+.hero .num{font-size:clamp(3.5rem,9vw,8rem);font-weight:900;color:transparent;-webkit-text-stroke:1.5px var(--faint);line-height:.9;letter-spacing:-.04em}
+.hero h1{font-size:clamp(2.6rem,8vw,6.4rem);font-weight:900;line-height:.92;letter-spacing:-.04em;text-transform:uppercase;margin:6px 0 22px;opacity:0;transform:translateY(24px);animation:rise .8s .15s cubic-bezier(.19,1,.22,1) forwards}
+.hero h1 em{font-style:normal;color:var(--red)}
+.hero .lead{font-size:clamp(1.05rem,2.2vw,1.5rem);color:var(--dim);max-width:680px;line-height:1.6;font-weight:600;opacity:0;transform:translateY(24px);animation:rise .8s .3s cubic-bezier(.19,1,.22,1) forwards}
+.hero .tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:28px;opacity:0;transform:translateY(24px);animation:rise .8s .45s cubic-bezier(.19,1,.22,1) forwards}
+.hero .tags span{font-family:var(--mono);font-size:.68rem;color:var(--dim);border:1px solid var(--faint);border-radius:999px;padding:4px 12px}
+@keyframes rise{to{opacity:1;transform:none}}
+.marquee{background:var(--red);color:#111;overflow:hidden;white-space:nowrap;padding:13px 0;transform:rotate(-1deg) scale(1.02)}
+.marquee .track{display:inline-block;animation:mq 20s linear infinite}
+.marquee span{font-family:var(--disp);font-weight:800;font-size:1rem;text-transform:uppercase;letter-spacing:.06em;margin-right:46px}
+@keyframes mq{to{transform:translateX(-50%)}}
+section.body{max-width:900px;margin:0 auto;padding:14vh 5vw}
+.block{margin-bottom:11vh}
+.block .k{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.2em;color:var(--red);margin-bottom:18px}
+.block h2{font-size:clamp(1.7rem,4vw,2.8rem);font-weight:900;letter-spacing:-.03em;text-transform:uppercase;line-height:1;margin-bottom:22px}
+.block p{font-size:1.02rem;color:var(--dim);line-height:1.75;margin-bottom:16px}
+.block p strong{color:var(--ink);font-weight:600}
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .7s,transform .7s cubic-bezier(.19,1,.22,1)}
+.reveal.in{opacity:1;transform:none}
+.steps{list-style:none;counter-reset:s;border-left:1px solid var(--faint);margin-top:8px}
+.steps li{counter-increment:s;position:relative;padding:0 0 26px 40px}
+.steps li::before{content:counter(s,decimal-leading-zero);position:absolute;left:-1px;top:-2px;transform:translateX(-50%);background:var(--bg);color:var(--red);font-family:var(--mono);font-size:.7rem;padding:2px 0}
+.steps li b{display:block;color:var(--ink);font-size:1.02rem;font-weight:700;margin-bottom:4px;text-transform:uppercase;letter-spacing:-.01em}
+.steps li span{color:var(--dim);font-size:.94rem;line-height:1.6}
+.code{background:#0f0f0f;border:1px solid var(--faint);border-radius:10px;overflow:hidden;margin-top:8px}
+.code .bar{display:flex;align-items:center;gap:7px;padding:11px 15px;background:#1a1a1a;border-bottom:1px solid var(--faint)}
+.code .bar i{width:10px;height:10px;border-radius:50%;background:var(--faint)}
+.code .bar i:first-child{background:var(--red)}
+.code .bar span{font-family:var(--mono);font-size:.68rem;color:var(--dim);margin-left:6px}
+.code pre{font-family:var(--mono);font-size:.82rem;line-height:1.7;color:#c9c6bf;padding:18px;overflow-x:auto;white-space:pre}
+.code pre .c{color:#6b6b6b}.code pre .g{color:#5dd67c}.code pre .r{color:var(--red)}.code pre .y{color:#e6b450}
+.why{background:var(--bg2);border:1px solid var(--faint);border-left:3px solid var(--red);border-radius:0 12px 12px 0;padding:26px 30px}
+.why .k{color:var(--red);font-family:var(--mono);font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;margin-bottom:12px}
+.why p{color:var(--dim);font-size:1rem;line-height:1.7;margin:0}
+.why p strong{color:var(--ink)}
+.nextnav{display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--faint);padding-top:6vh;flex-wrap:wrap}
+.nextnav a{flex:1;min-width:220px;border:1px solid var(--faint);border-radius:12px;padding:22px 26px;transition:border-color .3s,background .3s}
+.nextnav a:hover{border-color:var(--red);background:var(--bg2)}
+.nextnav .l{font-family:var(--mono);font-size:.66rem;text-transform:uppercase;letter-spacing:.2em;color:var(--dim);margin-bottom:8px}
+.nextnav .t{font-size:1.15rem;font-weight:800;text-transform:uppercase;letter-spacing:-.01em}
+.nextnav a:hover .t{color:var(--red)}
+.nextnav .t.rt{text-align:right}.nextnav .l.rt{text-align:right}
+footer{padding:14vh 5vw 6vh;text-align:center}
+footer .cta{font-size:clamp(1.8rem,5vw,3.4rem);font-weight:900;text-transform:uppercase;letter-spacing:-.03em;line-height:1;margin-bottom:5vh}
+footer .cta em{font-style:normal;color:transparent;-webkit-text-stroke:1.5px var(--red)}
+.pill{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--ink);border-radius:999px;padding:18px 36px;transition:background .3s,color .3s,border-color .3s;margin:0 6px 14px}
+.pill:hover{background:var(--red);border-color:var(--red);color:#111}
+.pill.solid{background:var(--red);border-color:var(--red);color:#111}
+.pill.solid:hover{background:transparent;color:var(--ink);border-color:var(--ink)}
+footer .fine{font-family:var(--mono);font-size:.68rem;color:var(--faint);margin-top:5vh;letter-spacing:.1em}
+@media(max-width:760px){nav .logo b+span,nav .logo{font-size:.72rem}.nextnav a{min-width:100%}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.hero h1,.hero .lead,.hero .tags{opacity:1;transform:none}.reveal{opacity:1;transform:none}}
+</style>
+  </head>
+  <body>
+    <div class="cur-dot" aria-hidden="true"></div>
+    <div class="cur-ring" aria-hidden="true"></div>
+    <nav>
+      <a class="logo" href="index.html"><b>&gt;_</b> <span>PASAN©2026</span></a>
+      <a class="back" href="index.html#work">← All projects</a>
+    </nav>
+
+    <header class="hero">
+      <div class="eyebrow">python-cybersecurity-learning-toolkit / tool 03</div>
+      <div class="num">03</div>
+      <h1>Port <em>Scanner</em></h1>
+      <p class="lead">A multi-threaded TCP port scanner built on raw sockets —
+        the fundamentals living under tools like nmap, written from scratch to
+        actually understand them.</p>
+      <div
+        class="tags"><span>python</span><span>sockets</span><span>threading</span><span>tcp</span></div>
+    </header>
+
+    <div class="marquee" aria-hidden="true"><div class="track">
+        <span>python ●</span><span>sockets ●</span><span>threading
+          ●</span><span>tcp ●</span><span>Port Scanner ●</span><span>python
+          ●</span><span>sockets ●</span><span>threading ●</span><span>tcp
+          ●</span><span>Port Scanner ●</span>
+      </div></div>
+
+    <section class="body">
+      <div class="block reveal">
+        <div class="k">What it does</div>
+        <p>Every network service listens on a <strong>port</strong>.
+          Reconnaissance — the first phase of any engagement — starts with
+          finding which ports are open on a target, because open ports are the
+          doors you probe next.</p><p>This scanner attempts a TCP connection to
+          each port in a range. A successful handshake means the port is open; a
+          refusal or timeout means it's closed or filtered. Threading runs many
+          attempts in parallel so a full sweep takes seconds, not minutes.</p>
+      </div>
+
+      <div class="block reveal">
+        <div class="k">How it works</div>
+        <h2>Under the hood</h2>
+        <ol class="steps"><li><b>Take a target + range</b><span>Accepts a host
+              and a range of ports to test.</span></li><li><b>Attempt
+              connections</b><span>For each port, opens a TCP socket and tries
+              to connect.</span></li><li><b>Read the result</b><span>Connection
+              succeeds = open; refused/timed out = closed or
+              filtered.</span></li><li><b>Parallelise</b><span>Threads fan the
+              work out across many ports at once for speed.</span></li></ol>
+        <div class="code"><div
+            class="bar"><i></i><i></i><i></i><span>scanner.py</span></div><pre>$ python scanner.py 192.168.1.10 -p 1-1000
+<span class="c"># 50 threads, TCP connect scan</span>
+<span class="g">22/tcp   open</span>   ssh
+<span class="g">80/tcp   open</span>   http
+<span class="g">443/tcp  open</span>   https
+<span class="c">... 997 closed</span>
+
+<span class="g">scan complete in 3.2s</span></pre></div>
+      </div>
+
+      <div class="block reveal">
+        <div class="why">
+          <div class="k">Why it matters</div>
+          <p>Writing your own scanner forces you to learn the <strong>TCP
+              handshake</strong>, socket states, and why filtered differs from
+            closed — knowledge that's invisible if you only ever run nmap.
+            Understanding the primitive makes you far better at using the
+            polished tool.</p>
+        </div>
+      </div>
+
+      <div class="nextnav reveal">
+        <a href="ssh-brute-force-detector.html"><div class="l">←
+            Previous</div><div class="t">SSH Brute Force Detector</div></a>
+        <a href="netsniffer.html"><div class="l rt">Next →</div><div
+            class="t rt">NetSniffer</div></a>
+      </div>
+    </section>
+
+    <footer>
+      <div class="cta">See the <em>code.</em></div>
+      <a class="pill solid"
+        href="https://github.com/PASAN121/python-cybersecurity-learning-toolkit"
+        target="_blank" rel="noopener">View on GitHub ↗</a>
+      <a class="pill" href="index.html">← Back to portfolio</a>
+      <div class="fine">©2026 Pasan — part of the python cybersecurity
+        toolkit</div>
+    </footer>
+    <script>
+(function(){
+var reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+var touch=matchMedia('(hover: none)').matches;
+if(!touch&&!reduced){
+  var dot=document.querySelector('.cur-dot'),ring=document.querySelector('.cur-ring');
+  var mx=innerWidth/2,my=innerHeight/2,rx=mx,ry=my;
+  addEventListener('mousemove',function(e){mx=e.clientX;my=e.clientY;dot.style.left=mx+'px';dot.style.top=my+'px';});
+  (function l(){rx+=(mx-rx)*.16;ry+=(my-ry)*.16;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(l);})();
+  document.querySelectorAll('a,button').forEach(function(el){el.addEventListener('mouseenter',function(){ring.classList.add('hov');});el.addEventListener('mouseleave',function(){ring.classList.remove('hov');});});
+}
+var obs=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');obs.unobserve(e.target);}});},{threshold:.14});
+document.querySelectorAll('.reveal').forEach(function(n){obs.observe(n);});
+})();
+</script>
+  </body>
+</html>

@@ -1,0 +1,1869 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+
+        <meta charset="UTF-8">
+
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0">
+
+        <title>
+            Cyber Process Monitor — PASAN
+        </title>
+
+        <meta
+            name="description"
+            content="Cyber Process Monitor — Python process and system resource monitoring tool by Pasan.">
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+
+        <link
+            rel="preconnect"
+            href="https://fonts.gstatic.com"
+            crossorigin>
+
+        <link
+            href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=IBM+Plex+Mono:wght@400;500&display=swap"
+            rel="stylesheet">
+
+        <style>
+
+    :root {
+
+      --bg: #161616;
+      --bg2: #1d1d1d;
+
+      --ink: #f2efe9;
+      --dim: #8b8880;
+      --faint: #3a3a38;
+
+      --red: #ed4439;
+      --red-dark: #c9352b;
+
+      --green: #5dd67c;
+
+      --mono:
+        'IBM Plex Mono',
+        ui-monospace,
+        monospace;
+
+      --disp:
+        'Archivo',
+        system-ui,
+        sans-serif;
+    }
+
+
+    * {
+
+      margin: 0;
+      padding: 0;
+
+      box-sizing: border-box;
+    }
+
+
+    html {
+
+      scroll-behavior: smooth;
+    }
+
+
+    body {
+
+      background: var(--bg);
+
+      color: var(--ink);
+
+      font-family: var(--disp);
+
+      overflow-x: hidden;
+    }
+
+
+    ::selection {
+
+      background: var(--red);
+
+      color: #111;
+    }
+
+
+    a {
+
+      color: inherit;
+
+      text-decoration: none;
+    }
+
+
+    a:focus-visible {
+
+      outline: 2px solid var(--red);
+
+      outline-offset: 4px;
+    }
+
+
+    /* =========================
+       CURSOR
+    ========================= */
+
+    .cur-dot,
+    .cur-ring {
+
+      position: fixed;
+
+      top: 0;
+      left: 0;
+
+      pointer-events: none;
+
+      z-index: 9999;
+
+      border-radius: 50%;
+
+      transform:
+        translate(-50%, -50%);
+    }
+
+
+    .cur-dot {
+
+      width: 7px;
+      height: 7px;
+
+      background: var(--red);
+    }
+
+
+    .cur-ring {
+
+      width: 40px;
+      height: 40px;
+
+      border:
+        1.5px solid
+        rgba(242, 239, 233, .35);
+
+      transition:
+        width .3s,
+        height .3s,
+        border-color .3s,
+        background .3s;
+    }
+
+
+    .cur-ring.hov {
+
+      width: 64px;
+      height: 64px;
+
+      border-color: var(--red);
+
+      background:
+        rgba(237, 68, 57, .12);
+    }
+
+
+    @media (hover: none) {
+
+      .cur-dot,
+      .cur-ring {
+
+        display: none;
+      }
+    }
+
+
+    /* =========================
+       NAV
+    ========================= */
+
+    nav {
+
+      position: fixed;
+
+      top: 0;
+      left: 0;
+      right: 0;
+
+      z-index: 100;
+
+      display: flex;
+
+      justify-content: space-between;
+
+      align-items: center;
+
+      padding: 20px 5vw;
+
+      background:
+        linear-gradient(
+          180deg,
+          rgba(22, 22, 22, .95),
+          rgba(22, 22, 22, 0)
+        );
+    }
+
+
+    nav .logo {
+
+      font-family: var(--mono);
+
+      font-size: .85rem;
+
+      letter-spacing: .1em;
+    }
+
+
+    nav .logo b {
+
+      color: var(--red);
+
+      font-weight: 500;
+    }
+
+
+    nav .back {
+
+      font-family: var(--mono);
+
+      font-size: .72rem;
+
+      text-transform: uppercase;
+
+      letter-spacing: .12em;
+
+      color: var(--dim);
+
+      transition: color .25s;
+    }
+
+
+    nav .back:hover {
+
+      color: var(--red);
+    }
+
+
+    /* =========================
+       HERO
+    ========================= */
+
+    .hero {
+
+      min-height: 100svh;
+
+      display: flex;
+
+      flex-direction: column;
+
+      justify-content: center;
+
+      padding:
+        18vh 8vw
+        12vh;
+
+      position: relative;
+    }
+
+
+    .eyebrow {
+
+      font-family: var(--mono);
+
+      font-size: .72rem;
+
+      text-transform: uppercase;
+
+      letter-spacing: .25em;
+
+      color: var(--dim);
+
+      margin-bottom: 20px;
+    }
+
+
+    .eyebrow::before {
+
+      content: "// ";
+
+      color: var(--red);
+    }
+
+
+    .number {
+
+      font-size:
+        clamp(7rem, 20vw, 18rem);
+
+      font-weight: 900;
+
+      line-height: .75;
+
+      color: transparent;
+
+      -webkit-text-stroke:
+        2px var(--faint);
+
+      margin-left: -.05em;
+    }
+
+
+    .hero h1 {
+
+      font-size:
+        clamp(3.5rem, 10vw, 9rem);
+
+      font-weight: 900;
+
+      line-height: .9;
+
+      letter-spacing: -.05em;
+
+      text-transform: uppercase;
+
+      margin-top: 30px;
+    }
+
+
+    .hero h1 em {
+
+      font-style: normal;
+
+      color: var(--red);
+    }
+
+
+    .lead {
+
+      max-width: 760px;
+
+      font-size:
+        clamp(1rem, 2vw, 1.3rem);
+
+      color: var(--dim);
+
+      line-height: 1.65;
+
+      margin-top: 32px;
+    }
+
+
+    .tags {
+
+      display: flex;
+
+      flex-wrap: wrap;
+
+      gap: 8px;
+
+      margin-top: 30px;
+    }
+
+
+    .tags span {
+
+      font-family: var(--mono);
+
+      font-size: .68rem;
+
+      color: var(--dim);
+
+      border:
+        1px solid var(--faint);
+
+      border-radius: 999px;
+
+      padding: 5px 12px;
+    }
+
+
+    .scroll {
+
+      position: absolute;
+
+      bottom: 5vh;
+
+      left: 8vw;
+
+      font-family: var(--mono);
+
+      font-size: .65rem;
+
+      text-transform: uppercase;
+
+      letter-spacing: .2em;
+
+      color: var(--dim);
+    }
+
+
+    /* =========================
+       MARQUEE
+    ========================= */
+
+    .marquee {
+
+      background: var(--red);
+
+      color: #111;
+
+      overflow: hidden;
+
+      white-space: nowrap;
+
+      padding: 16px 0;
+
+      transform:
+        rotate(-1.2deg)
+        scale(1.02);
+    }
+
+
+    .marquee .track {
+
+      display: inline-block;
+
+      animation:
+        mq 20s linear infinite;
+    }
+
+
+    .marquee span {
+
+      font-weight: 800;
+
+      font-size: 1.05rem;
+
+      text-transform: uppercase;
+
+      letter-spacing: .06em;
+
+      margin-right: 48px;
+    }
+
+
+    @keyframes mq {
+
+      to {
+
+        transform:
+          translateX(-50%);
+      }
+    }
+
+
+    /* =========================
+       CONTENT
+    ========================= */
+
+    main {
+
+      max-width: 1300px;
+
+      margin: 0 auto;
+
+      padding: 16vh 5vw;
+    }
+
+
+    .section {
+
+      margin-bottom: 18vh;
+    }
+
+
+    .section-label {
+
+      font-family: var(--mono);
+
+      font-size: .72rem;
+
+      text-transform: uppercase;
+
+      letter-spacing: .25em;
+
+      color: var(--dim);
+
+      margin-bottom: 16px;
+    }
+
+
+    .section-label::before {
+
+      content: "// ";
+
+      color: var(--red);
+    }
+
+
+    .section-title {
+
+      font-size:
+        clamp(2.4rem, 6vw, 5rem);
+
+      font-weight: 900;
+
+      text-transform: uppercase;
+
+      letter-spacing: -.04em;
+
+      line-height: .95;
+
+      margin-bottom: 6vh;
+    }
+
+
+    .section-title em {
+
+      font-style: normal;
+
+      color: var(--red);
+    }
+
+
+    /* =========================
+       WHAT IT DOES
+    ========================= */
+
+    .intro-grid {
+
+      display: grid;
+
+      grid-template-columns:
+        1fr 1fr;
+
+      gap: 24px;
+    }
+
+
+    .box {
+
+      background: var(--bg2);
+
+      border:
+        1px solid var(--faint);
+
+      border-radius: 14px;
+
+      padding: 32px;
+
+      transition:
+        border-color .3s,
+        transform .3s;
+    }
+
+
+    .box:hover {
+
+      border-color: var(--red);
+
+      transform:
+        translateY(-4px);
+    }
+
+
+    .box h3 {
+
+      font-size: 1.25rem;
+
+      text-transform: uppercase;
+
+      font-weight: 800;
+
+      margin-bottom: 14px;
+    }
+
+
+    .box p {
+
+      color: var(--dim);
+
+      font-size: .9rem;
+
+      line-height: 1.65;
+    }
+
+
+    /* =========================
+       HOW IT WORKS
+    ========================= */
+
+    .steps {
+
+      display: grid;
+
+      grid-template-columns:
+        repeat(5, 1fr);
+
+      gap: 12px;
+    }
+
+
+    .step {
+
+      background: var(--bg2);
+
+      border:
+        1px solid var(--faint);
+
+      border-radius: 12px;
+
+      padding: 24px;
+
+      min-height: 230px;
+
+      display: flex;
+
+      flex-direction: column;
+
+      justify-content: space-between;
+
+      transition:
+        border-color .3s;
+    }
+
+
+    .step:hover {
+
+      border-color: var(--red);
+    }
+
+
+    .step .n {
+
+      font-family: var(--mono);
+
+      color: var(--red);
+
+      font-size: .7rem;
+
+      letter-spacing: .15em;
+    }
+
+
+    .step h3 {
+
+      font-size: 1.1rem;
+
+      text-transform: uppercase;
+
+      font-weight: 800;
+    }
+
+
+    .step p {
+
+      font-size: .8rem;
+
+      line-height: 1.55;
+
+      color: var(--dim);
+    }
+
+
+    /* =========================
+       CODE
+    ========================= */
+
+    .code {
+
+      background: #101010;
+
+      border:
+        1px solid var(--faint);
+
+      border-radius: 12px;
+
+      overflow: hidden;
+    }
+
+
+    .code-head {
+
+      display: flex;
+
+      align-items: center;
+
+      gap: 8px;
+
+      padding: 12px 16px;
+
+      background: #1a1a1a;
+
+      border-bottom:
+        1px solid var(--faint);
+    }
+
+
+    .code-head i {
+
+      width: 10px;
+      height: 10px;
+
+      border-radius: 50%;
+
+      background: var(--faint);
+    }
+
+
+    .code-head i:first-child {
+
+      background: var(--red);
+    }
+
+
+    .code-head span {
+
+      margin-left: 8px;
+
+      font-family: var(--mono);
+
+      font-size: .68rem;
+
+      color: var(--dim);
+    }
+
+
+    pre {
+
+      padding: 28px;
+
+      overflow-x: auto;
+
+      font-family: var(--mono);
+
+      font-size: .78rem;
+
+      line-height: 1.75;
+
+      color: #c9c6bf;
+    }
+
+
+    .keyword {
+
+      color: var(--red);
+    }
+
+
+    .comment {
+
+      color: #666;
+    }
+
+
+    .string {
+
+      color: var(--green);
+    }
+
+
+    /* =========================
+       DETECTION LOGIC
+    ========================= */
+
+    .logic {
+
+      display: grid;
+
+      grid-template-columns:
+        1fr 1fr;
+
+      gap: 24px;
+    }
+
+
+    .threshold {
+
+      background: var(--bg2);
+
+      border:
+        1px solid var(--faint);
+
+      border-radius: 14px;
+
+      padding: 32px;
+    }
+
+
+    .threshold h3 {
+
+      font-size: 1.2rem;
+
+      text-transform: uppercase;
+
+      margin-bottom: 20px;
+    }
+
+
+    .threshold-row {
+
+      display: flex;
+
+      justify-content: space-between;
+
+      align-items: center;
+
+      padding: 14px 0;
+
+      border-bottom:
+        1px solid var(--faint);
+
+      font-family: var(--mono);
+
+      font-size: .78rem;
+    }
+
+
+    .threshold-row:last-child {
+
+      border-bottom: none;
+    }
+
+
+    .status {
+
+      color: var(--dim);
+    }
+
+
+    .status.warning {
+
+      color: #e6b85c;
+    }
+
+
+    .status.alert {
+
+      color: var(--red);
+    }
+
+
+    /* =========================
+       WHY IT MATTERS
+    ========================= */
+
+    .matter {
+
+      max-width: 850px;
+    }
+
+
+    .matter p {
+
+      font-size:
+        clamp(1.1rem, 2vw, 1.45rem);
+
+      line-height: 1.65;
+
+      color: var(--dim);
+    }
+
+
+    .matter strong {
+
+      color: var(--ink);
+    }
+
+
+    /* =========================
+       NEXT PROJECT
+    ========================= */
+
+    .next {
+
+      border-top:
+        1px solid var(--faint);
+
+      padding-top: 8vh;
+
+      display: flex;
+
+      justify-content: space-between;
+
+      align-items: flex-end;
+
+      gap: 30px;
+    }
+
+
+    .next small {
+
+      display: block;
+
+      font-family: var(--mono);
+
+      font-size: .68rem;
+
+      letter-spacing: .2em;
+
+      text-transform: uppercase;
+
+      color: var(--dim);
+
+      margin-bottom: 14px;
+    }
+
+
+    .next h2 {
+
+      font-size:
+        clamp(2rem, 5vw, 4.5rem);
+
+      font-weight: 900;
+
+      text-transform: uppercase;
+
+      line-height: .9;
+    }
+
+
+    .next h2 em {
+
+      font-style: normal;
+
+      color: var(--red);
+    }
+
+
+    .next-arrow {
+
+      font-family: var(--mono);
+
+      font-size: .8rem;
+
+      text-transform: uppercase;
+
+      letter-spacing: .15em;
+
+      color: var(--dim);
+
+      border:
+        1px solid var(--faint);
+
+      padding: 16px 22px;
+
+      border-radius: 999px;
+
+      transition:
+        border-color .3s,
+        color .3s,
+        background .3s;
+    }
+
+
+    .next-arrow:hover {
+
+      border-color: var(--red);
+
+      color: #111;
+
+      background: var(--red);
+    }
+
+
+    /* =========================
+       FOOTER
+    ========================= */
+
+    footer {
+
+      padding:
+        12vh 5vw 6vh;
+
+      border-top:
+        1px solid var(--faint);
+    }
+
+
+    footer .huge {
+
+      font-size:
+        clamp(3rem, 10vw, 9rem);
+
+      font-weight: 900;
+
+      line-height: .9;
+
+      text-transform: uppercase;
+
+      letter-spacing: -.04em;
+    }
+
+
+    footer .huge em {
+
+      font-style: normal;
+
+      color: transparent;
+
+      -webkit-text-stroke:
+        2px var(--red);
+    }
+
+
+    footer .bottom {
+
+      display: flex;
+
+      justify-content: space-between;
+
+      flex-wrap: wrap;
+
+      gap: 20px;
+
+      margin-top: 10vh;
+
+      padding-top: 4vh;
+
+      border-top:
+        1px solid var(--faint);
+
+      font-family: var(--mono);
+
+      font-size: .68rem;
+
+      text-transform: uppercase;
+
+      letter-spacing: .1em;
+
+      color: var(--dim);
+    }
+
+
+    footer a:hover {
+
+      color: var(--red);
+    }
+
+
+    /* =========================
+       MOBILE
+    ========================= */
+
+    @media (max-width: 850px) {
+
+      .intro-grid {
+
+        grid-template-columns: 1fr;
+      }
+
+
+      .steps {
+
+        grid-template-columns:
+          1fr 1fr;
+      }
+
+
+      .logic {
+
+        grid-template-columns: 1fr;
+      }
+
+    }
+
+
+    @media (max-width: 600px) {
+
+      nav .back {
+
+        font-size: .6rem;
+      }
+
+
+      .hero {
+
+        padding:
+          16vh 7vw
+          10vh;
+      }
+
+
+      .number {
+
+        font-size: 7rem;
+      }
+
+
+      .hero h1 {
+
+        font-size: 3.3rem;
+      }
+
+
+      main {
+
+        padding:
+          12vh 6vw;
+      }
+
+
+      .steps {
+
+        grid-template-columns: 1fr;
+      }
+
+
+      .next {
+
+        align-items: flex-start;
+
+        flex-direction: column;
+      }
+
+
+      footer {
+
+        padding:
+          10vh 6vw 5vh;
+      }
+
+    }
+
+
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+
+        animation: none !important;
+
+        transition: none !important;
+      }
+
+    }
+
+  </style>
+
+    </head>
+
+    <body>
+
+        <!-- CURSOR -->
+
+        <div
+            class="cur-dot"
+            aria-hidden="true"></div>
+
+        <div
+            class="cur-ring"
+            aria-hidden="true"></div>
+
+        <!-- NAV -->
+
+        <nav>
+
+            <a
+                class="logo"
+                href="index.html">
+                <b>&gt;_</b> PASAN©2026
+            </a>
+
+            <a
+                class="back"
+                href="index.html#work">
+                ← Back to projects
+            </a>
+
+        </nav>
+
+        <!-- HERO -->
+
+        <header class="hero">
+
+            <div class="eyebrow">
+                python-cybersecurity-learning-toolkit / tool 07
+            </div>
+
+            <div class="number">
+                07
+            </div>
+
+            <h1>
+                Cyber Process
+                <br>
+                <em>Monitor</em>
+            </h1>
+
+            <p class="lead">
+                A Python-based system monitoring tool that watches
+                running processes, tracks resource usage, detects
+                threshold violations, and records system activity
+                for later analysis.
+            </p>
+
+            <div class="tags">
+
+                <span>python</span>
+
+                <span>psutil</span>
+
+                <span>process monitoring</span>
+
+                <span>system security</span>
+
+                <span>logging</span>
+
+            </div>
+
+            <div class="scroll">
+                Scroll ↓
+            </div>
+
+        </header>
+
+        <!-- MARQUEE -->
+
+        <div
+            class="marquee"
+            aria-hidden="true">
+
+            <div class="track">
+
+                <span>Process monitoring ●</span>
+                <span>Python security ●</span>
+                <span>System analysis ●</span>
+                <span>Resource monitoring ●</span>
+                <span>Logging ●</span>
+
+                <span>Process monitoring ●</span>
+                <span>Python security ●</span>
+                <span>System analysis ●</span>
+                <span>Resource monitoring ●</span>
+                <span>Logging ●</span>
+
+            </div>
+
+        </div>
+
+        <!-- MAIN -->
+
+        <main>
+
+            <!-- WHAT IT DOES -->
+
+            <section class="section">
+
+                <div class="section-label">
+                    What it does
+                </div>
+
+                <h2 class="section-title">
+                    Watch the system.
+                    <br>
+                    <em>Find the abnormal.</em>
+                </h2>
+
+                <div class="intro-grid">
+
+                    <div class="box">
+
+                        <h3>
+                            Process Monitoring
+                        </h3>
+
+                        <p>
+                            Enumerates running processes and collects
+                            information about their current activity,
+                            including process identifiers, names and
+                            resource usage.
+                        </p>
+
+                    </div>
+
+                    <div class="box">
+
+                        <h3>
+                            Resource Tracking
+                        </h3>
+
+                        <p>
+                            Tracks CPU and memory usage so resource-heavy
+                            processes can be identified and investigated.
+                        </p>
+
+                    </div>
+
+                    <div class="box">
+
+                        <h3>
+                            Threshold Detection
+                        </h3>
+
+                        <p>
+                            Compares observed resource usage against
+                            predefined thresholds and classifies activity
+                            into normal, warning and alert states.
+                        </p>
+
+                    </div>
+
+                    <div class="box">
+
+                        <h3>
+                            Activity Logging
+                        </h3>
+
+                        <p>
+                            Records monitoring results into a CSV log so
+                            activity can be reviewed later instead of
+                            disappearing when the monitoring session ends.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- HOW IT WORKS -->
+
+            <section class="section">
+
+                <div class="section-label">
+                    How it works
+                </div>
+
+                <h2 class="section-title">
+                    From process
+                    <br>
+                    <em>to alert.</em>
+                </h2>
+
+                <div class="steps">
+
+                    <div class="step">
+
+                        <div class="n">
+                            01 / INSPECT
+                        </div>
+
+                        <h3>
+                            Inspect Processes
+                        </h3>
+
+                        <p>
+                            Enumerate the processes currently running
+                            on the system.
+                        </p>
+
+                    </div>
+
+                    <div class="step">
+
+                        <div class="n">
+                            02 / MONITOR
+                        </div>
+
+                        <h3>
+                            Monitor Resources
+                        </h3>
+
+                        <p>
+                            Collect CPU and memory usage from the
+                            observed processes.
+                        </p>
+
+                    </div>
+
+                    <div class="step">
+
+                        <div class="n">
+                            03 / CLASSIFY
+                        </div>
+
+                        <h3>
+                            Classify Activity
+                        </h3>
+
+                        <p>
+                            Compare resource usage against defined
+                            thresholds.
+                        </p>
+
+                    </div>
+
+                    <div class="step">
+
+                        <div class="n">
+                            04 / ALERT
+                        </div>
+
+                        <h3>
+                            Generate Alerts
+                        </h3>
+
+                        <p>
+                            Flag processes that cross warning or
+                            critical thresholds.
+                        </p>
+
+                    </div>
+
+                    <div class="step">
+
+                        <div class="n">
+                            05 / LOG
+                        </div>
+
+                        <h3>
+                            Record Data
+                        </h3>
+
+                        <p>
+                            Save monitoring information for later
+                            investigation and analysis.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- CODE -->
+
+            <section class="section">
+
+                <div class="section-label">
+                    Core implementation
+                </div>
+
+                <h2 class="section-title">
+                    The monitor
+                    <br>
+                    <em>loop.</em>
+                </h2>
+
+                <div class="code">
+
+                    <div class="code-head">
+
+                        <i></i>
+                        <i></i>
+                        <i></i>
+
+                        <span>
+                            process_monitor.py
+                        </span>
+
+                    </div>
+
+                    <pre><code><span class="keyword">import</span> psutil
+<span class="keyword">import</span> csv
+<span class="keyword">import</span> time
+
+CPU_THRESHOLD = <span class="string">75</span>
+MEMORY_THRESHOLD = <span class="string">75</span>
+
+<span class="keyword">for</span> process <span class="keyword">in</span> psutil.process_iter(
+    [<span class="string">'pid'</span>, <span class="string">'name'</span>, <span class="string">'cpu_percent'</span>, <span class="string">'memory_percent'</span>]
+):
+
+    <span class="keyword">try</span>:
+
+        info = process.info
+
+        cpu = info[<span class="string">'cpu_percent'</span>] <span class="keyword">or</span> <span class="string">0</span>
+        memory = info[<span class="string">'memory_percent'</span>] <span class="keyword">or</span> <span class="string">0</span>
+
+        <span class="keyword">if</span> cpu &gt; CPU_THRESHOLD:
+            status = <span class="string">"ALERT"</span>
+
+        <span class="keyword">elif</span> cpu &gt; <span class="string">50</span>:
+            status = <span class="string">"WARN"</span>
+
+        <span class="keyword">else</span>:
+            status = <span class="string">"NORMAL"</span>
+
+        <span class="comment"># Record the observation for later analysis</span>
+        writer.writerow([
+            info[<span class="string">'pid'</span>],
+            info[<span class="string">'name'</span>],
+            cpu,
+            memory,
+            status
+        ])
+
+    <span class="keyword">except</span> (
+        psutil.NoSuchProcess,
+        psutil.AccessDenied
+    ):
+        <span class="keyword">continue</span></code></pre>
+
+                </div>
+
+            </section>
+
+            <!-- DETECTION LOGIC -->
+
+            <section class="section">
+
+                <div class="section-label">
+                    Detection logic
+                </div>
+
+                <h2 class="section-title">
+                    Define the
+                    <br>
+                    <em>threshold.</em>
+                </h2>
+
+                <div class="logic">
+
+                    <div class="threshold">
+
+                        <h3>
+                            CPU / Resource Classification
+                        </h3>
+
+                        <div class="threshold-row">
+
+                            <span>
+                                Below 50%
+                            </span>
+
+                            <span class="status">
+                                NORMAL
+                            </span>
+
+                        </div>
+
+                        <div class="threshold-row">
+
+                            <span>
+                                50% — 75%
+                            </span>
+
+                            <span class="status warning">
+                                WARNING
+                            </span>
+
+                        </div>
+
+                        <div class="threshold-row">
+
+                            <span>
+                                Above 75%
+                            </span>
+
+                            <span class="status alert">
+                                ALERT
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <div class="threshold">
+
+                        <h3>
+                            Configured Thresholds
+                        </h3>
+
+                        <div class="threshold-row">
+
+                            <span>
+                                CPU threshold
+                            </span>
+
+                            <span>
+                                75%
+                            </span>
+
+                        </div>
+
+                        <div class="threshold-row">
+
+                            <span>
+                                Memory threshold
+                            </span>
+
+                            <span>
+                                75%
+                            </span>
+
+                        </div>
+
+                        <div class="threshold-row">
+
+                            <span>
+                                Output
+                            </span>
+
+                            <span>
+                                CSV
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- WHY IT MATTERS -->
+
+            <section class="section">
+
+                <div class="section-label">
+                    Why it matters
+                </div>
+
+                <h2 class="section-title">
+                    Small tool.
+                    <br>
+                    <em>Security mindset.</em>
+                </h2>
+
+                <div class="matter">
+
+                    <p>
+                        Process monitoring is useful because it turns
+                        raw system activity into something that can be
+                        investigated. A security analyst may need to
+                        understand which processes are running, what
+                        resources they consume, and whether unusual
+                        activity deserves further investigation.
+                        <br><br>
+                        This project connects Python programming with
+                        <strong>system monitoring, detection logic,
+                            threshold-based alerting and security
+                            logging.</strong>
+                        It is a small implementation of concepts that
+                        appear in larger endpoint monitoring and security
+                        systems.
+                    </p>
+
+                </div>
+
+            </section>
+
+            <!-- NEXT -->
+
+            <section class="section">
+
+                <div class="next">
+
+                    <div>
+
+                        <small>
+                            Previous project / 06
+                        </small>
+
+                        <h2>
+                            System Automation
+                            <br>
+                            <em>Tool</em>
+                        </h2>
+
+                    </div>
+
+                    <a
+                        class="next-arrow"
+                        href="system-automation-tool.html">
+                        ← Previous
+                    </a>
+
+                </div>
+
+                <div
+                    class="next"
+                    style="margin-top: 80px;">
+
+                    <div>
+
+                        <small>
+                            Back to the collection
+                        </small>
+
+                        <h2>
+                            Seven tools.
+                            <br>
+                            <em>One path.</em>
+                        </h2>
+
+                    </div>
+
+                    <a
+                        class="next-arrow"
+                        href="index.html#work">
+                        All projects →
+                    </a>
+
+                </div>
+
+            </section>
+
+        </main>
+
+        <!-- FOOTER -->
+
+        <footer>
+
+            <div class="huge">
+
+                Built from
+                <br>
+
+                <em>scratch.</em>
+
+            </div>
+
+            <div class="bottom">
+
+                <div>
+                    ©2026 Pasan — Sri Lanka
+                </div>
+
+                <a
+                    href="https://github.com/PASAN121/cyber-process-monitor"
+                    target="_blank"
+                    rel="noopener">
+                    GitHub repository ↗
+                </a>
+
+                <a
+                    href="index.html#work">
+                    Back to portfolio ↗
+                </a>
+
+            </div>
+
+        </footer>
+
+        <!-- JAVASCRIPT -->
+
+        <script>
+
+    (function () {
+
+      "use strict";
+
+
+      var touch =
+        matchMedia(
+          '(hover: none)'
+        ).matches;
+
+
+      var reduced =
+        matchMedia(
+          '(prefers-reduced-motion: reduce)'
+        ).matches;
+
+
+      /* CURSOR */
+
+      if (!touch && !reduced) {
+
+        var dot =
+          document.querySelector(
+            '.cur-dot'
+          );
+
+
+        var ring =
+          document.querySelector(
+            '.cur-ring'
+          );
+
+
+        var mx =
+          innerWidth / 2;
+
+        var my =
+          innerHeight / 2;
+
+        var rx = mx;
+        var ry = my;
+
+
+        addEventListener(
+          'mousemove',
+          function (e) {
+
+            mx = e.clientX;
+
+            my = e.clientY;
+
+
+            dot.style.left =
+              mx + 'px';
+
+            dot.style.top =
+              my + 'px';
+
+          }
+        );
+
+
+        (function loop() {
+
+          rx +=
+            (mx - rx) * .16;
+
+          ry +=
+            (my - ry) * .16;
+
+
+          ring.style.left =
+            rx + 'px';
+
+          ring.style.top =
+            ry + 'px';
+
+
+          requestAnimationFrame(
+            loop
+          );
+
+        })();
+
+
+        document
+          .querySelectorAll('a')
+          .forEach(function (el) {
+
+            el.addEventListener(
+              'mouseenter',
+              function () {
+
+                ring.classList.add(
+                  'hov'
+                );
+
+              }
+            );
+
+
+            el.addEventListener(
+              'mouseleave',
+              function () {
+
+                ring.classList.remove(
+                  'hov'
+                );
+
+              }
+            );
+
+          });
+
+      }
+
+    })();
+
+  </script>
+
+    </body>
+
+</html>
